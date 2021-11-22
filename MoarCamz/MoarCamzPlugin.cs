@@ -24,7 +24,7 @@ namespace MoarCamz
     {
         public const string GUID = "orange.spork.moarcamzplugin";
         public const string PluginName = "MoarCamz";
-        public const string Version = "1.0.2";
+        public const string Version = "1.0.3";
 
         public static MoarCamzPlugin Instance { get; private set; }
 
@@ -477,6 +477,7 @@ namespace MoarCamz
 
             ClearCenterButton.onClick.AddListener(() => {
                 CenterTarget = null;
+                LockOnEnabled = false;
                 CenterTargetKey = -1;
                 CenterTargetText.text = "Cntr: No center set.";
             });
@@ -592,22 +593,22 @@ namespace MoarCamz
 
                     if (ui.activeSelf)
                     { 
-                    if (!PositionX.isFocused)
-                        PositionX.text = string.Format("{0:F2}", LockOnEnabled ? OffsetPosition.x : Studio.Studio.Instance.cameraCtrl.cameraData.pos.x);
-                    if (!PositionY.isFocused)
-                        PositionY.text = string.Format("{0:F2}", LockOnEnabled ? OffsetPosition.y : Studio.Studio.Instance.cameraCtrl.cameraData.pos.y);
-                    if (!PositionZ.isFocused)
-                        PositionZ.text = string.Format("{0:F2}", LockOnEnabled ? OffsetPosition.z : Studio.Studio.Instance.cameraCtrl.cameraData.pos.z);
+                        if (!PositionX.isFocused)
+                            PositionX.text = string.Format("{0:F2}", LockOnEnabled ? OffsetPosition.x : Studio.Studio.Instance.cameraCtrl.cameraData.pos.x);
+                        if (!PositionY.isFocused)
+                            PositionY.text = string.Format("{0:F2}", LockOnEnabled ? OffsetPosition.y : Studio.Studio.Instance.cameraCtrl.cameraData.pos.y);
+                        if (!PositionZ.isFocused)
+                            PositionZ.text = string.Format("{0:F2}", LockOnEnabled ? OffsetPosition.z : Studio.Studio.Instance.cameraCtrl.cameraData.pos.z);
 
-                    if (!RotationX.isFocused)
-                        RotationX.text = string.Format("{0:F1}", Studio.Studio.Instance.cameraCtrl.cameraData.rotate.x);
-                    if (!RotationY.isFocused)
-                        RotationY.text = string.Format("{0:F1}", Studio.Studio.Instance.cameraCtrl.cameraData.rotate.y);
-                    if (!RotationZ.isFocused)
-                        RotationZ.text = string.Format("{0:F1}", Studio.Studio.Instance.cameraCtrl.cameraData.rotate.z);
+                        if (!RotationX.isFocused)
+                            RotationX.text = string.Format("{0:F1}", Studio.Studio.Instance.cameraCtrl.cameraData.rotate.x);
+                        if (!RotationY.isFocused)
+                            RotationY.text = string.Format("{0:F1}", Studio.Studio.Instance.cameraCtrl.cameraData.rotate.y);
+                        if (!RotationZ.isFocused)
+                            RotationZ.text = string.Format("{0:F1}", Studio.Studio.Instance.cameraCtrl.cameraData.rotate.z);
 
-                    if (!Distance.isFocused)
-                        Distance.text = string.Format("{0:F2}", -1 * Studio.Studio.Instance.cameraCtrl.cameraData.distance.z);
+                        if (!Distance.isFocused)
+                            Distance.text = string.Format("{0:F2}", -1 * Studio.Studio.Instance.cameraCtrl.cameraData.distance.z);
                     }
                     for (int i = 0; i < MoarCamz.Count; i++)
                     {
