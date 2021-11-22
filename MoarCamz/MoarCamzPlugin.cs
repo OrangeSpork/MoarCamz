@@ -24,7 +24,7 @@ namespace MoarCamz
     {
         public const string GUID = "orange.spork.moarcamzplugin";
         public const string PluginName = "MoarCamz";
-        public const string Version = "1.0.0";
+        public const string Version = "1.0.1";
 
         public static MoarCamzPlugin Instance { get; private set; }
 
