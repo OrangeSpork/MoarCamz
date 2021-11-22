@@ -107,7 +107,7 @@ namespace MoarCamz
             var harmony = new Harmony(GUID);
             harmony.Patch(typeof(StudioScene).GetMethod(nameof(StudioScene.OnClickLoadCamera)), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.OnClickLoadCameraPostfix), AccessTools.all)));
             harmony.Patch(typeof(StudioScene).GetMethod(nameof(StudioScene.OnClickSaveCamera)), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.OnClickSaveCameraPostfix), AccessTools.all)));
-            harmony.Patch(AccessTools.Method(typeof(Studio.CameraControl), "LateUpdate"), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.CameraControlLateUpdatePostfix), AccessTools.all)));
+            harmony.Patch(AccessTools.Method(typeof(Studio.CameraControl), "InternalUpdateCameraState"), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.CameraControlInternalUpdateCameraStatePostfix), AccessTools.all)));
 
 #if DEBUG
             Log.LogInfo("MoarCamz Loaded");
@@ -937,9 +937,16 @@ namespace MoarCamz
             MoarCamzPlugin.Instance.MoarCamz[_no].Save();            
         }
 
-        private static void CameraControlLateUpdatePostfix(Studio.CameraControl __instance)
+        private static void CameraControlInternalUpdateCameraStatePostfix(Studio.CameraControl __instance, Renderer ___m_TargetRender)
         {
-            __instance.isControlNow |= dragging;
+            if (dragging)
+            {
+                ___m_TargetRender.enabled = true;
+            }
+            else
+            {
+                ___m_TargetRender.enabled = __instance.isControlNow && __instance.isOutsideTargetTex && __instance.isConfigTargetTex;
+            }
             dragging = false;
         }
 
