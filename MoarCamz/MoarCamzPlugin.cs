@@ -939,7 +939,7 @@ namespace MoarCamz
 
         private static void CameraControlInternalUpdateCameraStatePostfix(Studio.CameraControl __instance, Renderer ___m_TargetRender)
         {
-            if (dragging)
+            if (dragging && __instance.isOutsideTargetTex && __instance.isConfigTargetTex)
             {
                 ___m_TargetRender.enabled = true;
             }
