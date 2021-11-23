@@ -17,7 +17,7 @@ Rebind hotkeys and set the drag pads sensitivity in F1->Plugin Settings.
 ### Camera Centering:
 
 You can center a camera by selecting the center object desired and clicking set on the interface. The selection is basically whatever is selected for purposes of the bottom left pos/rot bar. Can be an Object from the menu or an IK/FK guide object.
-Toggle the centering active by toggling on either of the two lock on targets. This causes the camera to center at the position of the object in question. Moving the camera now provides an offset from that location. Rotation and distance orbit around that as normal.
+Toggle the centering active by toggling on either of the two lock on targets. This causes the camera to center at the position of the object in question. Moving the camera now provides an offset from that location. Rotation and distance orbit around that as normal. If you don't want to risk accidentally moving the camera while locked on, toggle the position lock button, it'll prevent moving the offset while locked on - but you can still rotate and zoom. Button appears only when locked on.
 
 ## UI Guide
 ![UI Guide Image](https://raw.githubusercontent.com/OrangeSpork/MoarCamz/master/MoarCamz/Guide.png)
