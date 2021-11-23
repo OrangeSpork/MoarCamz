@@ -31,6 +31,8 @@ namespace MoarCamz
 
         public bool CenterTargetEngaged { get; set; }
 
+        public bool PositionLocked { get; set; }
+
         [IgnoreMember]
         public RectTransform CameraRect { get; set; }
         [IgnoreMember]
@@ -42,6 +44,7 @@ namespace MoarCamz
             MoarCamzPlugin.Instance.OffsetPosition = OffsetPosition;
             MoarCamzPlugin.Instance.LockOnEnabled = CenterTargetEngaged;
             MoarCamzPlugin.Instance.PreviousPosition = PreviousPosition;
+            MoarCamzPlugin.Instance.PositionLocked = PositionLocked;
 
 #if DEBUG
             MoarCamzPlugin.Instance.Log.LogInfo($"Loading {CenterTarget} {CenterTargetBone}");
@@ -66,6 +69,7 @@ namespace MoarCamz
             FOV = Studio.Studio.Instance.cameraCtrl.cameraData.parse;
             OffsetPosition = MoarCamzPlugin.Instance.OffsetPosition;
             PreviousPosition = MoarCamzPlugin.Instance.PreviousPosition;
+            PositionLocked = MoarCamzPlugin.Instance.PositionLocked;
             CenterTargetEngaged = MoarCamzPlugin.Instance.LockOnEnabled;
             CenterTarget = MoarCamzPlugin.Instance.CenterTargetKey;
             if (CenterTarget != -1)
@@ -86,6 +90,7 @@ namespace MoarCamz
             OffsetPosition = camzData.OffsetPosition;
             CenterTargetEngaged = camzData.CenterTargetEngaged;
             PreviousPosition = camzData.PreviousPosition;
+            PositionLocked = camzData.PositionLocked;
         }
     }
 }

@@ -24,7 +24,7 @@ namespace MoarCamz
     {
         public const string GUID = "orange.spork.moarcamzplugin";
         public const string PluginName = "MoarCamz";
-        public const string Version = "1.0.3";
+        public const string Version = "1.0.4";
 
         public static MoarCamzPlugin Instance { get; private set; }
 
@@ -85,6 +85,27 @@ namespace MoarCamz
         public int LastSelectedCamera {
             get { return lastSelectedCamera; }
             set { lastSelectedCamera = value; }
+        }
+
+        private bool _positionLocked;
+        public bool PositionLocked
+        {
+            get
+            {
+                return _positionLocked;
+            }
+            set
+            {
+                _positionLocked = value;
+                if (_positionLocked)
+                {
+                    PositionLockButton.image.color = Color.green;
+                }
+                else
+                {
+                    PositionLockButton.image.color = Color.white;
+                }
+            }
         }
 
         public MoarCamzPlugin()
@@ -225,6 +246,7 @@ namespace MoarCamz
             LockOnButton = ui.transform.Find("AdditionalOptions/LockOnButton").GetComponent<Button>();
             SetCenterButton = ui.transform.Find("AdditionalOptions/SetCenterButton").GetComponent<Button>();
             ClearCenterButton = ui.transform.Find("AdditionalOptions/ClearCenterButton").GetComponent<Button>();
+            PositionLockButton = ui.transform.Find("Distance/PositionLockButton").GetComponent<Button>();
 
             CenterTargetText = ui.transform.Find("AdditionalOptions/CenterTargeText").GetComponent<TextMeshProUGUI>();
 
@@ -445,32 +467,52 @@ namespace MoarCamz
                 GuideObject go = GuideObjectManager.Instance.selectObject;
                 if (go != null)
                 {
+#if DEBUG
+                    Log.LogInfo($"Looking for name for GO: {go.name} Target: {go.transformTarget?.name} DicKey: {go.dicKey}");
+#endif
                     if (Studio.Studio.Instance.dicObjectCtrl.TryGetValue(go.dicKey, out ObjectCtrlInfo oci))
                     {
+#if DEBUG
+                        Log.LogInfo($"Found OCI: {oci?.treeNodeObject?.textName}");
+#endif
                         CenterTargetKey = go.dicKey;
                         SetCenterTarget(CenterTargetKey, null);
                     }
                     else
                     {
                         bool found = false;
-                        Transform parent = go.transformTarget.parent;
+#if DEBUG
+                        Log.LogInfo($"Not Found in OCI dic, attempting to find parent: {go?.transformTarget?.parent}");
+#endif
+                        Transform parent = go?.transformTarget?.parent;
                         while (!found && parent != null)
                         {
                             foreach (int key in Studio.Studio.Instance.dicObjectCtrl.Keys)
                             {
-                                if (Studio.Studio.Instance.dicObjectCtrl[key].guideObject.transformTarget == parent)
+                                if (Studio.Studio.Instance.dicObjectCtrl[key]?.guideObject?.transformTarget == parent)
                                 {
+#if DEBUG
+                                    Log.LogInfo($"Found Parent: {Studio.Studio.Instance.dicObjectCtrl[key]?.treeNodeObject?.textName} Object: {Studio.Studio.Instance.dicObjectCtrl[key]?.guideObject?.transformTarget?.name} Key: {key}");
+#endif
+
                                     CenterTargetKey = key;
                                     found = true;
-                                }
-                                else
-                                {
-                                    parent = parent.transform.parent;
-                                }
+                                    break;
+                                }                                
+                            }
+                            if (!found)
+                            {
+                                parent = parent.parent;
                             }
                         }
                         if (found)
                             SetCenterTarget(CenterTargetKey, go.transformTarget.name);
+                        else
+                        {
+#if DEBUG
+                            Log.LogInfo($"No Suitable Center Target Found for GO");
+#endif
+                        }
                     }
                 }
             });
@@ -478,6 +520,7 @@ namespace MoarCamz
             ClearCenterButton.onClick.AddListener(() => {
                 CenterTarget = null;
                 LockOnEnabled = false;
+                PositionLocked = false;
                 CenterTargetKey = -1;
                 CenterTargetText.text = "Cntr: No center set.";
             });
@@ -489,6 +532,11 @@ namespace MoarCamz
 
             ToggleCenterButton.onClick.AddListener(() => {
                 LockOnEnabled = !LockOnEnabled;               
+            });
+
+            PositionLockButton.onClick.AddListener(() =>
+            {
+                PositionLocked = !PositionLocked;
             });
 
             AddCamButton.onClick.AddListener(() => {
@@ -515,6 +563,7 @@ namespace MoarCamz
             ToggleCenterButton.gameObject.SetActive(false);
             LockOnButton.interactable = false;
             ClearCenterButton.interactable = false;
+            PositionLockButton.gameObject.SetActive(false);
             UIInit = true;
 
         }
@@ -572,20 +621,33 @@ namespace MoarCamz
                         LockOnButton.gameObject.SetActive(true);
                         LockOnButton.interactable = true;
                         ToggleCenterButton.gameObject.SetActive(true);
-                        ClearCenterButton.interactable = true;
+                        ClearCenterButton.interactable = true;                        
                         if (LockOnEnabled)
                         {
-                            if (lastFrameInit)
-                                OffsetPosition += Studio.Studio.Instance.cameraCtrl.cameraData.pos - lastFramePosition;
+                            PositionLockButton.gameObject.SetActive(true);
+                            if (PositionLocked)
+                            {
+                                lastFrameInit = false;
+                            }
                             else
-                                lastFrameInit = true;
+                            {
+                                if (lastFrameInit)
+                                    OffsetPosition += Studio.Studio.Instance.cameraCtrl.cameraData.pos - lastFramePosition;
+                                else
+                                    lastFrameInit = true;
+                            }
 
                             Studio.Studio.Instance.cameraCtrl.cameraData.pos = CenterTarget.position + OffsetPosition;
                             lastFramePosition = Studio.Studio.Instance.cameraCtrl.cameraData.pos;
                         }
+                        else
+                        {
+                            PositionLockButton.gameObject.SetActive(false);
+                        }
                     }
                     else
                     {
+                        PositionLockButton.gameObject.SetActive(false);
                         LockOnButton.gameObject.SetActive(true);
                         LockOnButton.interactable = false;
                         ToggleCenterButton.gameObject.SetActive(false);
@@ -703,9 +765,9 @@ namespace MoarCamz
         {
             Quaternion rotation = Studio.Studio.Instance.cameraCtrl.cameraData.rotation;
             Vector3 compensatedDirection = -1 * (rotation * new Vector3(x, 0, 0));
-            if (LockOnEnabled)
+            if (LockOnEnabled && !PositionLocked)
                 offsetPosition = OffsetPosition + compensatedDirection;
-            else
+            else if (!LockOnEnabled)
                 SetPosition(Studio.Studio.Instance.cameraCtrl.cameraData.pos + compensatedDirection);
         }
 
@@ -720,9 +782,9 @@ namespace MoarCamz
         {
             Quaternion rotation = Studio.Studio.Instance.cameraCtrl.cameraData.rotation;
             Vector3 compensatedDirection = rotation * new Vector3(0, y, 0);
-            if (LockOnEnabled)
+            if (LockOnEnabled && !PositionLocked)
                 offsetPosition = OffsetPosition + compensatedDirection;
-            else
+            else if (!LockOnEnabled)
                 SetPosition(Studio.Studio.Instance.cameraCtrl.cameraData.pos + compensatedDirection);
         }
 
@@ -737,9 +799,9 @@ namespace MoarCamz
         {
             Quaternion rotation = Studio.Studio.Instance.cameraCtrl.cameraData.rotation;
             Vector3 compensatedDirection = -1 * (rotation * new Vector3(0, 0, z));
-            if (LockOnEnabled)
+            if (LockOnEnabled && !PositionLocked)
                 offsetPosition = OffsetPosition + compensatedDirection;
-            else
+            else if (!LockOnEnabled)
                 SetPosition(Studio.Studio.Instance.cameraCtrl.cameraData.pos + compensatedDirection);
         }
 
@@ -781,7 +843,7 @@ namespace MoarCamz
                 Log.LogInfo($"Cam Pos: {Studio.Studio.Instance.cameraCtrl.cameraData.pos} Rot: {Studio.Studio.Instance.cameraCtrl.cameraData.rotate} Dis: {Studio.Studio.Instance.cameraCtrl.cameraData.distance}");
 #endif
             }
-            else
+            else if (!PositionLocked)
             {
                 offsetPosition = position;
 #if DEBUG
@@ -829,7 +891,9 @@ namespace MoarCamz
 
         private bool CompareCamData(CameraData first, CameraData second, MoarCamzData moarCamzData)
         {
-            if (first == null && second == null)
+            if (moarCamzData == null)
+                return false;
+            else if (first == null && second == null)
                 return false;
             else if (first != null && second == null)
                 return false;
@@ -837,10 +901,20 @@ namespace MoarCamz
                 return false;
             else
             {
-                if (first.pos.Equals(second.pos) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && moarCamzData.CenterTargetBone == CenterTarget?.name)
-                    return true;
+                if (LockOnEnabled)
+                {
+                    if (moarCamzData.OffsetPosition.Equals(OffsetPosition) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && moarCamzData.CenterTargetBone == CenterTarget?.name)
+                        return true;
+                    else
+                        return false;
+                }
                 else
-                    return false;
+                {
+                    if (first.pos.Equals(second.pos) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && moarCamzData.CenterTargetBone == CenterTarget?.name)
+                        return true;
+                    else
+                        return false;
+                }
             }
         }
 
@@ -852,12 +926,24 @@ namespace MoarCamz
                 return false;
             else if (first == null && second != null)
                 return false;
+            else if (first == null)
+                return false;
             else
             {
-                if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance))
-                    return true;
+                if (LockOnEnabled)
+                {
+                    if (first.OffsetPosition.Equals(OffsetPosition) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && first.CenterTargetBone == CenterTarget?.name)
+                        return true;
+                    else
+                        return false;
+                }
                 else
-                    return false;
+                {
+                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && first.CenterTargetBone == CenterTarget?.name)
+                        return true;
+                    else
+                        return false;
+                }
             }
         }
 
@@ -1020,7 +1106,7 @@ namespace MoarCamz
         private Image XZScroll, XScroll, YScroll, ZScroll, DScroll;
         private TextMeshProUGUI ScrollY;
         private Button ScrollXZButton, ScrollXYButton;
-        private Button LockOnButton, SetCenterButton, ClearCenterButton;
+        private Button LockOnButton, SetCenterButton, ClearCenterButton, PositionLockButton;
         private TextMeshProUGUI CenterTargetText;
     }
 }
