@@ -18,19 +18,18 @@ namespace MoarCamz
 {
     [BepInPlugin(GUID, PluginName, Version)]
     [BepInProcess("StudioNEOV2")]
+    [BepInProcess("CharaStudio")]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     [BepInDependency(ExtensibleSaveFormat.ExtendedSave.GUID)]
     public class MoarCamzPlugin : BaseUnityPlugin
     {
         public const string GUID = "orange.spork.moarcamzplugin";
         public const string PluginName = "MoarCamz";
-        public const string Version = "1.0.4";
+        public const string Version = "1.0.5";
 
         public static MoarCamzPlugin Instance { get; private set; }
 
         internal BepInEx.Logging.ManualLogSource Log => Logger;
-
-        private AssetBundle uiAssetBundle;
 
         private bool UIInit = false;
 
@@ -128,7 +127,11 @@ namespace MoarCamz
             var harmony = new Harmony(GUID);
             harmony.Patch(typeof(StudioScene).GetMethod(nameof(StudioScene.OnClickLoadCamera)), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.OnClickLoadCameraPostfix), AccessTools.all)));
             harmony.Patch(typeof(StudioScene).GetMethod(nameof(StudioScene.OnClickSaveCamera)), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.OnClickSaveCameraPostfix), AccessTools.all)));
+#if KKS
+            harmony.Patch(AccessTools.Method(typeof(Studio.CameraControl), "LateUpdate"), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.CameraControlInternalUpdateCameraStatePostfix), AccessTools.all)));
+#else
             harmony.Patch(AccessTools.Method(typeof(Studio.CameraControl), "InternalUpdateCameraState"), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.CameraControlInternalUpdateCameraStatePostfix), AccessTools.all)));
+#endif
 
 #if DEBUG
             Log.LogInfo("MoarCamz Loaded");
@@ -144,7 +147,7 @@ namespace MoarCamz
         private void StudioAPI_StudioLoadedChanged(object sender, EventArgs e)
         {
             InitUI();
-            Log.LogInfo("MoarCamz UI Loaded");
+            Log.LogDebug("MoarCamz UI Loaded");
         }
 
         private GameObject cameraSlotFab;
@@ -163,10 +166,14 @@ namespace MoarCamz
 
             cameraScroll = scrollView.GetComponent<ScrollRect>();
             RectTransform cameraScrollRect = (RectTransform)cameraScroll.transform;
-            cameraScrollRect.anchorMin = new Vector2(0f, 1f);
-            cameraScrollRect.anchorMax = new Vector2(0f, 1f);
-            cameraScrollRect.offsetMin = new Vector2(-56f - 40f, -56f);
+#if KKS            
+            cameraScrollRect.offsetMin = new Vector2(-116f, -56f);
+            cameraScrollRect.offsetMax = new Vector2(356f, -8f);
+            cameraScrollRect.sizeDelta = new Vector2(472f, 48f);
+#else
+            cameraScrollRect.offsetMin = new Vector2(-96f, -56f);
             cameraScrollRect.offsetMax = new Vector2(336f, -8f);
+#endif            
 
             cameraScroll.vertical = false;
             GameObject.Destroy(cameraScroll.GetComponent<Image>());
@@ -187,9 +194,11 @@ namespace MoarCamz
                 MoarCamz.Add(moarCamzData);
             }
 
+            ResizeCameraScroll();
+
             // Load Edit UI
             byte[] uiBundleBytes = ResourceUtils.GetEmbeddedResource("moarcamzui.unity3d");
-            uiAssetBundle = AssetBundle.LoadFromMemory(uiBundleBytes);
+            AssetBundle uiAssetBundle = AssetBundle.LoadFromMemory(uiBundleBytes);
             GameObject menu = GameObject.Find("/StudioScene/Canvas System Menu/02_Camera");
 
             blankCameraPrefab = uiAssetBundle.LoadAsset<GameObject>("assets/prefab/camloadimage.prefab");
@@ -565,6 +574,7 @@ namespace MoarCamz
             ClearCenterButton.interactable = false;
             PositionLockButton.gameObject.SetActive(false);
             UIInit = true;
+            uiAssetBundle.Unload(false);
 
         }
 
@@ -903,18 +913,33 @@ namespace MoarCamz
             {
                 if (LockOnEnabled)
                 {
-                    if (moarCamzData.OffsetPosition.Equals(OffsetPosition) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && moarCamzData.CenterTargetBone == CenterTarget?.name)
+                    if (moarCamzData.OffsetPosition.Equals(OffsetPosition) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && CompareBoneNames(moarCamzData.CenterTargetBone, CenterTarget))
                         return true;
                     else
                         return false;
                 }
                 else
                 {
-                    if (first.pos.Equals(second.pos) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && moarCamzData.CenterTargetBone == CenterTarget?.name)
+                    if (first.pos.Equals(second.pos) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && CompareBoneNames(moarCamzData.CenterTargetBone, CenterTarget))
                         return true;
                     else
                         return false;
                 }
+            }
+        }
+
+        private bool CompareBoneNames(string boneName, Transform target)
+        {
+            if (boneName == null && target == null)
+                return true;
+            else
+            {
+                if (boneName == null)
+                    return false;
+                else if (target == null)
+                    return false;
+                else
+                    return boneName == target.name;
             }
         }
 
@@ -932,14 +957,14 @@ namespace MoarCamz
             {
                 if (LockOnEnabled)
                 {
-                    if (first.OffsetPosition.Equals(OffsetPosition) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && first.CenterTargetBone == CenterTarget?.name)
+                    if (first.OffsetPosition.Equals(OffsetPosition) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget))
                         return true;
                     else
                         return false;
                 }
                 else
                 {
-                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && first.CenterTargetBone == CenterTarget?.name)
+                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget))
                         return true;
                     else
                         return false;
@@ -966,7 +991,7 @@ namespace MoarCamz
                 }
                 else
                 {
-                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && first.CenterTargetBone == CenterTarget?.name)
+                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget))
                         return true;
                     else
                         return false;
@@ -991,7 +1016,7 @@ namespace MoarCamz
             loadButton.GetComponent<Image>().sprite = blankCameraPrefab.GetComponent<Image>().sprite;
             Transform textGO = GameObject.Instantiate(blankCameraPrefab.transform.Find("CamNumText"), loadButton.transform);
             textGO.GetComponent<Text>().text = slotNumber.ToString();
-            this.cameraScroll.content.sizeDelta = new Vector2( (40 * (slotNumber + 1)), cameraScroll.content.sizeDelta.y);
+            ResizeCameraScroll();
             DelCamButton.gameObject.SetActive(true);
         }
 
@@ -1004,6 +1029,8 @@ namespace MoarCamz
 
                 if (MoarCamz.Count <= 10)
                     DelCamButton.gameObject.SetActive(false);
+
+                ResizeCameraScroll();
             }
         }
 
@@ -1011,6 +1038,15 @@ namespace MoarCamz
         {
             MoarCamzData data = MoarCamz.Find(mc => mc.SlotNumber == slotNumber);
             DelCameraSlot(data);
+        }
+
+        private void ResizeCameraScroll()
+        {
+#if KKS
+            cameraScroll.content.sizeDelta = new Vector2(450 + (40 * (MoarCamz.Count - 10)), cameraScroll.content.sizeDelta.y);            
+#else
+            cameraScroll.content.sizeDelta = new Vector2(432 + (40 * (MoarCamz.Count - 10)), cameraScroll.content.sizeDelta.y);
+#endif
         }
 
         private static void OnClickLoadCameraPostfix(int _no)
