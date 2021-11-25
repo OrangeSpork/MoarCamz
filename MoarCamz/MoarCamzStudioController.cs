@@ -17,7 +17,6 @@ namespace MoarCamz
 
         protected override void OnSceneLoad(SceneOperationKind operation, ReadOnlyDictionary<int, ObjectCtrlInfo> loadedItems)
         {
-            Log.LogInfo($"Scene Loaded: {operation}");
             if (operation != SceneOperationKind.Import)
             {
                 // wipe cams down to vanilla

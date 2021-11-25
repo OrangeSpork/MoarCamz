@@ -25,7 +25,7 @@ namespace MoarCamz
     {
         public const string GUID = "orange.spork.moarcamzplugin";
         public const string PluginName = "MoarCamz";
-        public const string Version = "1.0.5";
+        public const string Version = "1.0.6";
 
         public static MoarCamzPlugin Instance { get; private set; }
 
@@ -166,10 +166,14 @@ namespace MoarCamz
 
             cameraScroll = scrollView.GetComponent<ScrollRect>();
             RectTransform cameraScrollRect = (RectTransform)cameraScroll.transform;
-#if KKS || KK          
+#if KKS
             cameraScrollRect.offsetMin = new Vector2(-116f, -56f);
             cameraScrollRect.offsetMax = new Vector2(356f, -8f);
             cameraScrollRect.sizeDelta = new Vector2(472f, 48f);
+#elif KK
+            cameraScrollRect.offsetMin = new Vector2(-116f, -56f);
+            cameraScrollRect.offsetMax = new Vector2(336f, -8f);
+            cameraScrollRect.sizeDelta = new Vector2(452f, 48f);
 #else
             cameraScrollRect.offsetMin = new Vector2(-96f, -56f);
             cameraScrollRect.offsetMax = new Vector2(336f, -8f);
@@ -228,6 +232,17 @@ namespace MoarCamz
             RotationButton = ui.transform.Find("Rotation/RotationButton").GetComponent<Button>();
             DistanceButton = ui.transform.Find("Distance/DistanceButton").GetComponent<Button>();
 
+#if KK
+            PositionX = ui.transform.Find("Position/PositionX").GetComponent<InputField>();
+            PositionY = ui.transform.Find("Position/PositionY").GetComponent<InputField>();
+            PositionZ = ui.transform.Find("Position/PositionZ").GetComponent<InputField>();
+
+            RotationX = ui.transform.Find("Rotation/RotationX").GetComponent<InputField>();
+            RotationY = ui.transform.Find("Rotation/RotationY").GetComponent<InputField>();
+            RotationZ = ui.transform.Find("Rotation/RotationZ").GetComponent<InputField>();
+
+            Distance = ui.transform.Find("Distance/Distance").GetComponent<InputField>();
+#else
             PositionX = ui.transform.Find("Position/PositionX").GetComponent<TMP_InputField>();
             PositionY = ui.transform.Find("Position/PositionY").GetComponent<TMP_InputField>();
             PositionZ = ui.transform.Find("Position/PositionZ").GetComponent<TMP_InputField>();
@@ -237,6 +252,9 @@ namespace MoarCamz
             RotationZ = ui.transform.Find("Rotation/RotationZ").GetComponent<TMP_InputField>();
 
             Distance = ui.transform.Find("Distance/Distance").GetComponent<TMP_InputField>();
+#endif
+
+
 
             ScrollNav = ui.transform.Find("ScrollNav").gameObject;
             FastNav = ui.transform.Find("ScrollNav/FastNav").gameObject;
@@ -250,14 +268,19 @@ namespace MoarCamz
 
             ScrollXZButton = ui.transform.Find("ScrollNav/FastNav/ScrollXZButton").GetComponent<Button>();
             ScrollXYButton = ui.transform.Find("ScrollNav/SlowNav/ScrollXYButton").GetComponent<Button>();
+
+#if KK
+            ScrollY = ui.transform.Find("ScrollNav/ScrollY").GetComponent<Text>();
+            CenterTargetText = ui.transform.Find("AdditionalOptions/CenterTargeText").GetComponent<Text>();
+#else
             ScrollY = ui.transform.Find("ScrollNav/ScrollY").GetComponent<TextMeshProUGUI>();
+            CenterTargetText = ui.transform.Find("AdditionalOptions/CenterTargeText").GetComponent<TextMeshProUGUI>();
+#endif
 
             LockOnButton = ui.transform.Find("AdditionalOptions/LockOnButton").GetComponent<Button>();
             SetCenterButton = ui.transform.Find("AdditionalOptions/SetCenterButton").GetComponent<Button>();
             ClearCenterButton = ui.transform.Find("AdditionalOptions/ClearCenterButton").GetComponent<Button>();
-            PositionLockButton = ui.transform.Find("Distance/PositionLockButton").GetComponent<Button>();
-
-            CenterTargetText = ui.transform.Find("AdditionalOptions/CenterTargeText").GetComponent<TextMeshProUGUI>();
+            PositionLockButton = ui.transform.Find("Distance/PositionLockButton").GetComponent<Button>();            
 
             // Initialize handlers
 
@@ -304,21 +327,27 @@ namespace MoarCamz
                 if (float.TryParse(s, out float x))
                 {                    
                     SetPositionX(x);
-                    PositionX.m_isSelected = false;
+#if !KK
+                    PositionX.m_isSelected = false;                    
+#endif
                 }
             });
             PositionY.onEndEdit.AddListener((s) => {
                 if (float.TryParse(s, out float y))
                 {
                     SetPositionY(y);
+#if !KK
                     PositionY.m_isSelected = false;
+#endif
                 }
             });
             PositionZ.onEndEdit.AddListener((s) => {
                 if (float.TryParse(s, out float z))
                 {
                     SetPositionZ(z);
-                    PositionZ.m_isSelected = false;
+#if !KK
+              PositionZ.m_isSelected = false;
+#endif
                 }
             });
 
@@ -326,28 +355,36 @@ namespace MoarCamz
                 if (float.TryParse(s, out float x))
                 {
                     SetRotationX(x);
+#if !KK
                     RotationX.m_isSelected = false;
+#endif
                 }
             });
             RotationY.onEndEdit.AddListener((s) => {
                 if (float.TryParse(s, out float y))
                 {                    
                     SetRotationY(y);
+#if !KK
                     RotationY.m_isSelected = false;
+#endif
                 }
             });
             RotationZ.onEndEdit.AddListener((s) => {
                 if (float.TryParse(s, out float z))
                 {                    
                     SetRotationZ(z);
+#if !KK
                     RotationZ.m_isSelected = false;
+#endif
                 }
             });
             Distance.onEndEdit.AddListener((s) => {
                 if (float.TryParse(s, out float d))
                 {                    
                     SetDistance(d);
+#if !KK
                     Distance.m_isSelected = false;
+#endif
                 }
             });
 
@@ -1129,9 +1166,15 @@ namespace MoarCamz
         private Button RotationButton;
         private Button DistanceButton;
 
+#if KK
+        private InputField PositionX, PositionY, PositionZ;
+        private InputField RotationX, RotationY, RotationZ;
+        private InputField Distance;
+#else
         private TMP_InputField PositionX, PositionY, PositionZ;
         private TMP_InputField RotationX, RotationY, RotationZ;
         private TMP_InputField Distance;
+#endif
 
         private GameObject FastNav;
         private GameObject SlowNav;
@@ -1140,12 +1183,18 @@ namespace MoarCamz
         private GameObject additionalButtons;
 
         private Image XZScroll, XScroll, YScroll, ZScroll, DScroll;
+#if KK
+        private Text ScrollY;
+        private Text CenterTargetText;
+#else
         private TextMeshProUGUI ScrollY;
+        private TextMeshProUGUI CenterTargetText;
+#endif
         private Button ScrollXZButton, ScrollXYButton;
         private Button LockOnButton, SetCenterButton, ClearCenterButton, PositionLockButton;
-        private TextMeshProUGUI CenterTargetText;
+        
 
-#if KKS
+#if KKS || KK
         private const float SCALE_COEFFICIENT = .1f;
 #else
         private const float SCALE_COEFFICIENT = 1f;
