@@ -7,6 +7,7 @@ using Studio;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 namespace MoarCamz
 {
@@ -26,6 +27,8 @@ namespace MoarCamz
                     MoarCamzPlugin.Instance.DelCameraSlot(data);
                 }
                 MoarCamzPlugin.Instance.MoarCamz.RemoveAll((mc) => mc.SlotNumber > 10);
+                MoarCamzPlugin.Instance.SetCenterTarget(-1, null);
+                MoarCamzPlugin.Instance.OffsetPosition = Vector3.zero;
 
                 if (operation == SceneOperationKind.Load)
                 {

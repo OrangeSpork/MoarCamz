@@ -40,14 +40,14 @@ namespace MoarCamz
         public static ConfigEntry<KeyboardShortcut> NextCameraButton { get; set; }
         public static ConfigEntry<KeyboardShortcut> PrevCameraButton { get; set; }
 
-        private static float FastDragPosIncrement => FastDragPosStepper.Value;
-        private static float FastDragPosDecrement => FastDragPosStepper.Value * -1f;
-        private static float SlowDragPosIncrement => SlowDragPosStepper.Value;
-        private static float SlowDragPosDecrement => SlowDragPosStepper.Value * -1f;
-        private static float FastDragRotIncrement => FastDragRotStepper.Value;
-        private static float FastDragRotDecrement => FastDragRotStepper.Value * -1f;
-        private static float SlowDragRotIncrement => SlowDragRotStepper.Value;
-        private static float SlowDragRotDecrement => SlowDragRotStepper.Value * -1f;
+        private static float FastDragPosIncrement => FastDragPosStepper.Value * SCALE_COEFFICIENT;
+        private static float FastDragPosDecrement => FastDragPosStepper.Value * -1f * SCALE_COEFFICIENT;
+        private static float SlowDragPosIncrement => SlowDragPosStepper.Value * SCALE_COEFFICIENT;
+        private static float SlowDragPosDecrement => SlowDragPosStepper.Value * -1f * SCALE_COEFFICIENT;
+        private static float FastDragRotIncrement => FastDragRotStepper.Value * SCALE_COEFFICIENT;
+        private static float FastDragRotDecrement => FastDragRotStepper.Value * -1f * SCALE_COEFFICIENT;
+        private static float SlowDragRotIncrement => SlowDragRotStepper.Value * SCALE_COEFFICIENT;
+        private static float SlowDragRotDecrement => SlowDragRotStepper.Value * -1f * SCALE_COEFFICIENT;
 
         public List<MoarCamzData> MoarCamz { get; private set; } = new List<MoarCamzData>();
         public Transform CenterTarget { get; set; }
@@ -1097,7 +1097,7 @@ namespace MoarCamz
 
         private bool CamIsSet(MoarCamzData data)
         {
-            return !(CompareCamData(data, newCam) || CompareCamData(data, initialCam) || CompareCamData(data, resetCam)) || data.CenterTarget != -1;
+            return !(CompareCamData(data, newCam, false) || CompareCamData(data, initialCam, false) || CompareCamData(data, resetCam, false)) || data.CenterTarget != -1;
         }
 
         private bool CamIsSet(CameraData camData, MoarCamzData moarCamzData)
@@ -1114,7 +1114,7 @@ namespace MoarCamz
         // private vars
         private CameraData initialCam;
         private CameraData resetCam;
-        private CameraData newCam = new CameraData();
+        private CameraData newCam = new Studio.CameraControl.CameraData();
         private int lastSelectedCamera = -1;
         private bool positionSelected = true;
         private static bool dragging;
@@ -1144,5 +1144,11 @@ namespace MoarCamz
         private Button ScrollXZButton, ScrollXYButton;
         private Button LockOnButton, SetCenterButton, ClearCenterButton, PositionLockButton;
         private TextMeshProUGUI CenterTargetText;
+
+#if KKS
+        private const float SCALE_COEFFICIENT = .1f;
+#else
+        private const float SCALE_COEFFICIENT = 1f;
+#endif
     }
 }
