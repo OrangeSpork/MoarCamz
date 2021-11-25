@@ -127,7 +127,7 @@ namespace MoarCamz
             var harmony = new Harmony(GUID);
             harmony.Patch(typeof(StudioScene).GetMethod(nameof(StudioScene.OnClickLoadCamera)), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.OnClickLoadCameraPostfix), AccessTools.all)));
             harmony.Patch(typeof(StudioScene).GetMethod(nameof(StudioScene.OnClickSaveCamera)), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.OnClickSaveCameraPostfix), AccessTools.all)));
-#if KKS
+#if KKS || KK
             harmony.Patch(AccessTools.Method(typeof(Studio.CameraControl), "LateUpdate"), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.CameraControlInternalUpdateCameraStatePostfix), AccessTools.all)));
 #else
             harmony.Patch(AccessTools.Method(typeof(Studio.CameraControl), "InternalUpdateCameraState"), null, new HarmonyMethod(typeof(MoarCamzPlugin).GetMethod(nameof(MoarCamzPlugin.CameraControlInternalUpdateCameraStatePostfix), AccessTools.all)));
@@ -166,7 +166,7 @@ namespace MoarCamz
 
             cameraScroll = scrollView.GetComponent<ScrollRect>();
             RectTransform cameraScrollRect = (RectTransform)cameraScroll.transform;
-#if KKS            
+#if KKS || KK          
             cameraScrollRect.offsetMin = new Vector2(-116f, -56f);
             cameraScrollRect.offsetMax = new Vector2(356f, -8f);
             cameraScrollRect.sizeDelta = new Vector2(472f, 48f);
@@ -619,7 +619,7 @@ namespace MoarCamz
 
         private void Update()
         {
-            if (KKAPI.Studio.StudioAPI.InsideStudio)
+            if (KKAPI.Studio.StudioAPI.InsideStudio && UIInit)
             {
                 if (Studio.Studio.Instance != null && Studio.Studio.Instance.cameraCtrl != null)
                 {
@@ -1042,7 +1042,7 @@ namespace MoarCamz
 
         private void ResizeCameraScroll()
         {
-#if KKS
+#if KKS || KK
             cameraScroll.content.sizeDelta = new Vector2(450 + (40 * (MoarCamz.Count - 10)), cameraScroll.content.sizeDelta.y);            
 #else
             cameraScroll.content.sizeDelta = new Vector2(432 + (40 * (MoarCamz.Count - 10)), cameraScroll.content.sizeDelta.y);

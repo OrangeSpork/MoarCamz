@@ -30,6 +30,11 @@ namespace MoarCamz
                 MoarCamzPlugin.Instance.SetCenterTarget(-1, null);
                 MoarCamzPlugin.Instance.OffsetPosition = Vector3.zero;
 
+                foreach (MoarCamzData data in MoarCamzPlugin.Instance.MoarCamz)
+                {
+                    data.ClearExtended();
+                }
+
                 if (operation == SceneOperationKind.Load)
                 {
                     // load new cams
@@ -53,6 +58,14 @@ namespace MoarCamz
                                 }
                             }
                         }
+                        if (pluginData.data.TryGetValue("MoarCamzInitial", out object moarCamzInitial))
+                        {
+                            MessagePackSerializer.Deserialize<MoarCamzData>((byte[])moarCamzInitial).Load(true);
+                        }
+                        if (pluginData.data.TryGetValue("MoarCamzLastSelection", out object moarCamzLastSelection))
+                        {
+                            MoarCamzPlugin.Instance.LastSelectedCamera = (int)moarCamzLastSelection;
+                        }
                     }
                 }
                 else
@@ -69,6 +82,10 @@ namespace MoarCamz
             PluginData pluginData = new PluginData();
             pluginData.data = new Dictionary<string, object>();
             pluginData.data["MoarCamz"] = MessagePackSerializer.Serialize<List<MoarCamzData>>(MoarCamzPlugin.Instance.MoarCamz);
+            MoarCamzData initialSceneView = new MoarCamzData();
+            initialSceneView.Save();
+            pluginData.data["MoarCamzInitial"] = MessagePackSerializer.Serialize<MoarCamzData>(initialSceneView);
+            pluginData.data["MoarCamzLastSelection"] = MoarCamzPlugin.Instance.LastSelectedCamera;
             SetExtendedData(pluginData);
         }
     }

@@ -38,6 +38,24 @@ namespace MoarCamz
         [IgnoreMember]
         public Image CameraImage { get; set; }
 
+        public void Clear()
+        {
+            Position = Vector3.zero;
+            Rotation = Vector3.zero;
+            Distance = Vector3.zero;
+            FOV = 23;            
+        }
+
+        public void ClearExtended()
+        {
+            OffsetPosition = Vector3.zero;
+            PreviousPosition = Vector3.zero;
+            CenterTarget = -1;
+            CenterTargetBone = null;
+            CenterTargetEngaged = false;
+            PositionLocked = false;
+        }
+
         public void Load(bool extended)
         {
             MoarCamzPlugin.Instance.SetCenterTarget(CenterTarget, CenterTargetBone);
@@ -81,6 +99,14 @@ namespace MoarCamz
             MoarCamzPlugin.Instance.Log.LogInfo($"Saving {CenterTarget} {CenterTargetBone}");
 #endif            
 
+        }
+
+        internal void Copy(CameraData camData)
+        {
+            Position = camData.pos;
+            Rotation = camData.rotate;
+            Distance = camData.distance;
+            FOV = camData.parse;
         }
 
         internal void Copy(MoarCamzData camzData)
