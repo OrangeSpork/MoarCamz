@@ -44,10 +44,10 @@ namespace MoarCamz
         private static float FastDragPosDecrement => FastDragPosStepper.Value * -1f * SCALE_COEFFICIENT;
         private static float SlowDragPosIncrement => SlowDragPosStepper.Value * SCALE_COEFFICIENT;
         private static float SlowDragPosDecrement => SlowDragPosStepper.Value * -1f * SCALE_COEFFICIENT;
-        private static float FastDragRotIncrement => FastDragRotStepper.Value * SCALE_COEFFICIENT;
-        private static float FastDragRotDecrement => FastDragRotStepper.Value * -1f * SCALE_COEFFICIENT;
-        private static float SlowDragRotIncrement => SlowDragRotStepper.Value * SCALE_COEFFICIENT;
-        private static float SlowDragRotDecrement => SlowDragRotStepper.Value * -1f * SCALE_COEFFICIENT;
+        private static float FastDragRotIncrement => FastDragRotStepper.Value;
+        private static float FastDragRotDecrement => FastDragRotStepper.Value * -1f;
+        private static float SlowDragRotIncrement => SlowDragRotStepper.Value;
+        private static float SlowDragRotDecrement => SlowDragRotStepper.Value * -1f;
 
         public List<MoarCamzData> MoarCamz { get; private set; } = new List<MoarCamzData>();
         public Transform CenterTarget { get; set; }
