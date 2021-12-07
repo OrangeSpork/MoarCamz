@@ -25,7 +25,7 @@ namespace MoarCamz
     {
         public const string GUID = "orange.spork.moarcamzplugin";
         public const string PluginName = "MoarCamz";
-        public const string Version = "1.0.6";
+        public const string Version = "1.0.7";
 
         public static MoarCamzPlugin Instance { get; private set; }
 
@@ -740,60 +740,76 @@ namespace MoarCamz
 
                 if (NextCameraButton.Value.IsDown())
                 {
-                    int originalValue = lastSelectedCamera;
-                    Log.LogInfo($"Original Value {originalValue}");
-                    bool found = false;
-                    while (!found)
-                    {
-                        lastSelectedCamera++;
-                        if (lastSelectedCamera >= MoarCamz.Count)
-                            lastSelectedCamera = 0;
-                        if (lastSelectedCamera < 10 && CamIsSet(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera], MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1)))
-                            found = true;
-                        else if (lastSelectedCamera >= 10 && CamIsSet(MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1)))
-                            found = true;
-                        else if (originalValue == -1)
-                            originalValue = 0;
-                        else if (originalValue == lastSelectedCamera)
-                            break;
-                        Log.LogInfo($"Found: {found} LC: {lastSelectedCamera}");
-                    }
-                    Log.LogInfo($"Using: {found} LC: {lastSelectedCamera}");
-                    if (lastSelectedCamera < 10)
-                        Studio.Studio.Instance.cameraCtrl.Import(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera]);
-                    else
-                        MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1).Load(true);
+                    NextCamera();
                 }
                 else if (PrevCameraButton.Value.IsDown())
                 {
-                    int originalValue = lastSelectedCamera;
-                    Log.LogInfo($"Original Value {originalValue}");
-                    bool found = false;
-                    while (!found)
-                    {
-                        lastSelectedCamera--;
-                        if (lastSelectedCamera < 0)
-                            lastSelectedCamera = MoarCamz.Count - 1;
-                        if (lastSelectedCamera < 10 && CamIsSet(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera], MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1)))
-                            found = true;
-                        else if (lastSelectedCamera >= 10 && CamIsSet(MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1)))
-                            found = true;
-                        else if (originalValue == -1)
-                            originalValue = MoarCamz.Count - 1;
-                        else if (originalValue == lastSelectedCamera)
-                            break;
-                        Log.LogInfo($"Found: {found} LC: {lastSelectedCamera}");
-
-                    }
-
-                    Log.LogInfo($"Using: {found} LC: {lastSelectedCamera}");
-                    if (lastSelectedCamera < 10)
-                        Studio.Studio.Instance.cameraCtrl.Import(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera]);
-                    else
-                        MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1).Load(true);
+                    PrevCamera();
                 }
             }
         }        
+
+        public void NextCamera()
+        {
+            int originalValue = lastSelectedCamera;
+            Log.LogInfo($"Original Value {originalValue}");
+            bool found = false;
+            while (!found)
+            {
+                lastSelectedCamera++;
+                if (lastSelectedCamera >= MoarCamz.Count)
+                    lastSelectedCamera = 0;
+                if (lastSelectedCamera < 10 && CamIsSet(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera], MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1)))
+                    found = true;
+                else if (lastSelectedCamera >= 10 && CamIsSet(MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1)))
+                    found = true;
+                else if (originalValue == -1)
+                    originalValue = 0;
+                else if (originalValue == lastSelectedCamera)
+                    break;
+                Log.LogInfo($"Found: {found} LC: {lastSelectedCamera}");
+            }
+            Log.LogInfo($"Using: {found} LC: {lastSelectedCamera}");
+            if (lastSelectedCamera < 10)
+            {
+                Studio.Studio.Instance.cameraCtrl.Import(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera]);
+                MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1).Load(false);
+            }
+            else
+                MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1).Load(true);
+        }
+
+        public void PrevCamera()
+        {
+            int originalValue = lastSelectedCamera;
+            Log.LogInfo($"Original Value {originalValue}");
+            bool found = false;
+            while (!found)
+            {
+                lastSelectedCamera--;
+                if (lastSelectedCamera < 0)
+                    lastSelectedCamera = MoarCamz.Count - 1;
+                if (lastSelectedCamera < 10 && CamIsSet(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera], MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1)))
+                    found = true;
+                else if (lastSelectedCamera >= 10 && CamIsSet(MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1)))
+                    found = true;
+                else if (originalValue == -1)
+                    originalValue = MoarCamz.Count - 1;
+                else if (originalValue == lastSelectedCamera)
+                    break;
+                Log.LogInfo($"Found: {found} LC: {lastSelectedCamera}");
+
+            }
+
+            Log.LogInfo($"Using: {found} LC: {lastSelectedCamera}");
+            if (lastSelectedCamera < 10)
+            {
+                Studio.Studio.Instance.cameraCtrl.Import(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera]);
+                MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1).Load(false);
+            }
+            else
+                MoarCamz.Find((mc) => mc.SlotNumber == lastSelectedCamera + 1).Load(true);
+        }
 
         private void LateUpdate()
         {
