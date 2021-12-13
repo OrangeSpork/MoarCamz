@@ -752,7 +752,6 @@ namespace MoarCamz
         public void NextCamera()
         {
             int originalValue = lastSelectedCamera;
-            Log.LogInfo($"Original Value {originalValue}");
             bool found = false;
             while (!found)
             {
@@ -767,9 +766,7 @@ namespace MoarCamz
                     originalValue = 0;
                 else if (originalValue == lastSelectedCamera)
                     break;
-                Log.LogInfo($"Found: {found} LC: {lastSelectedCamera}");
             }
-            Log.LogInfo($"Using: {found} LC: {lastSelectedCamera}");
             if (lastSelectedCamera < 10)
             {
                 Studio.Studio.Instance.cameraCtrl.Import(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera]);
@@ -782,7 +779,6 @@ namespace MoarCamz
         public void PrevCamera()
         {
             int originalValue = lastSelectedCamera;
-            Log.LogInfo($"Original Value {originalValue}");
             bool found = false;
             while (!found)
             {
@@ -797,11 +793,9 @@ namespace MoarCamz
                     originalValue = MoarCamz.Count - 1;
                 else if (originalValue == lastSelectedCamera)
                     break;
-                Log.LogInfo($"Found: {found} LC: {lastSelectedCamera}");
 
             }
 
-            Log.LogInfo($"Using: {found} LC: {lastSelectedCamera}");
             if (lastSelectedCamera < 10)
             {
                 Studio.Studio.Instance.cameraCtrl.Import(Studio.Studio.Instance.sceneInfo.cameraData[lastSelectedCamera]);
