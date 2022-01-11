@@ -25,7 +25,7 @@ namespace MoarCamz
     {
         public const string GUID = "orange.spork.moarcamzplugin";
         public const string PluginName = "MoarCamz";
-        public const string Version = "1.0.7";
+        public const string Version = "1.0.8";
 
         public static MoarCamzPlugin Instance { get; private set; }
 
@@ -231,6 +231,8 @@ namespace MoarCamz
             PositionButton = ui.transform.Find("Position/PositionButton").GetComponent<Button>();
             RotationButton = ui.transform.Find("Rotation/RotationButton").GetComponent<Button>();
             DistanceButton = ui.transform.Find("Distance/DistanceButton").GetComponent<Button>();
+            FOVButton = ui.transform.Find("FOV/FOVButton").GetComponent<Button>();
+            FOVSlider = ui.transform.Find("FOV/FOVSlider").GetComponent<Slider>();
 
 #if KK
             PositionX = ui.transform.Find("Position/PositionX").GetComponent<InputField>();
@@ -242,6 +244,8 @@ namespace MoarCamz
             RotationZ = ui.transform.Find("Rotation/RotationZ").GetComponent<InputField>();
 
             Distance = ui.transform.Find("Distance/Distance").GetComponent<InputField>();
+            FOV = ui.transform.Find("FOV/FOV").GetComponent<InputField>();
+            
 #else
             PositionX = ui.transform.Find("Position/PositionX").GetComponent<TMP_InputField>();
             PositionY = ui.transform.Find("Position/PositionY").GetComponent<TMP_InputField>();
@@ -252,8 +256,10 @@ namespace MoarCamz
             RotationZ = ui.transform.Find("Rotation/RotationZ").GetComponent<TMP_InputField>();
 
             Distance = ui.transform.Find("Distance/Distance").GetComponent<TMP_InputField>();
+            FOV = ui.transform.Find("FOV/FOV").GetComponent<TMP_InputField>();
+            
 #endif
-
+            
 
 
             ScrollNav = ui.transform.Find("ScrollNav").gameObject;
@@ -386,6 +392,26 @@ namespace MoarCamz
                     Distance.m_isSelected = false;
 #endif
                 }
+            });
+            FOV.onEndEdit.AddListener((s) =>
+            {
+                if (int.TryParse(s, out int d))
+                {
+                    SetFOV(d);
+#if !KK
+                    FOV.m_isSelected = false;
+#endif
+                }
+            });
+            FOVSlider.minValue = 5;
+            FOVSlider.maxValue = 179;
+            FOVSlider.onValueChanged.AddListener((f) =>
+            {
+                SetFOV((int)f);
+            });
+            FOVButton.onClick.AddListener(() =>
+            {
+                SetFOV(23);
             });
 
             EventTrigger.Entry xzDragEvent = new EventTrigger.Entry();
@@ -718,6 +744,13 @@ namespace MoarCamz
 
                         if (!Distance.isFocused)
                             Distance.text = string.Format("{0:F2}", -1 * Studio.Studio.Instance.cameraCtrl.cameraData.distance.z);
+
+                        if (!FOV.isFocused)
+                        {
+                            FOV.text = string.Format("{0}", Studio.Studio.Instance.cameraCtrl.cameraData.parse);
+                            FOVSlider.value = Studio.Studio.Instance.cameraCtrl.cameraData.parse;
+                        }
+                        
                     }
                     for (int i = 0; i < MoarCamz.Count; i++)
                     {
@@ -808,7 +841,7 @@ namespace MoarCamz
         private void LateUpdate()
         {
 
-        }
+        }        
 
         private void SetPositionX(float x)
         {
@@ -924,9 +957,19 @@ namespace MoarCamz
             Log.LogInfo($"Cam Pos: {Studio.Studio.Instance.cameraCtrl.cameraData.pos} Rot: {Studio.Studio.Instance.cameraCtrl.cameraData.rotate} Dis: {Studio.Studio.Instance.cameraCtrl.cameraData.distance}");
 #endif
         }
+
         private void AddDistance(float d)
         {
             SetDistance((Studio.Studio.Instance.cameraCtrl.cameraData.distance.z * -1f) + d);
+        }
+
+        private void SetFOV(int fov)
+        {
+            Studio.Studio.Instance.cameraCtrl.cameraData.parse = fov;
+            Studio.Studio.Instance.cameraCtrl.fieldOfView = fov;
+#if DEBUG
+            Log.LogInfo($"Cam FOV: {Studio.Studio.Instance.cameraCtrl.cameraData.parse});
+#endif
         }
 
         private bool CompareCamData(CameraData first, CameraData second)
@@ -939,7 +982,7 @@ namespace MoarCamz
                 return false;
             else
             {
-                if (first.pos.Equals(second.pos) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance))
+                if (first.pos.Equals(second.pos) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && first.parse.Equals(second.parse))
                     return true;
                 else
                     return false;
@@ -960,14 +1003,14 @@ namespace MoarCamz
             {
                 if (LockOnEnabled)
                 {
-                    if (moarCamzData.OffsetPosition.Equals(OffsetPosition) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && CompareBoneNames(moarCamzData.CenterTargetBone, CenterTarget))
+                    if (moarCamzData.OffsetPosition.Equals(OffsetPosition) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && CompareBoneNames(moarCamzData.CenterTargetBone, CenterTarget) && first.parse.Equals(second.parse))
                         return true;
                     else
                         return false;
                 }
                 else
                 {
-                    if (first.pos.Equals(second.pos) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && CompareBoneNames(moarCamzData.CenterTargetBone, CenterTarget))
+                    if (first.pos.Equals(second.pos) && first.rotate.Equals(second.rotate) && first.distance.Equals(second.distance) && moarCamzData.CenterTarget == CenterTargetKey && CompareBoneNames(moarCamzData.CenterTargetBone, CenterTarget) && first.parse.Equals(second.parse))
                         return true;
                     else
                         return false;
@@ -1004,14 +1047,14 @@ namespace MoarCamz
             {
                 if (LockOnEnabled)
                 {
-                    if (first.OffsetPosition.Equals(OffsetPosition) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget))
+                    if (first.OffsetPosition.Equals(OffsetPosition) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget) && first.FOV.Equals(second.parse))
                         return true;
                     else
                         return false;
                 }
                 else
                 {
-                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget))
+                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget) && first.FOV.Equals(second.parse))
                         return true;
                     else
                         return false;
@@ -1031,14 +1074,14 @@ namespace MoarCamz
             {
                 if (!checkExtended)
                 {
-                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance))
+                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.FOV.Equals(second.parse))
                         return true;
                     else
                         return false;
                 }
                 else
                 {
-                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget))
+                    if (first.Position.Equals(second.pos) && first.Rotation.Equals(second.rotate) && first.Distance.Equals(second.distance) && first.CenterTarget == CenterTargetKey && CompareBoneNames(first.CenterTargetBone, CenterTarget) && first.FOV.Equals(second.parse))
                         return true;
                     else
                         return false;
@@ -1175,15 +1218,19 @@ namespace MoarCamz
         private Button PositionButton;
         private Button RotationButton;
         private Button DistanceButton;
+        private Button FOVButton;
+        private Slider FOVSlider;
 
 #if KK
         private InputField PositionX, PositionY, PositionZ;
         private InputField RotationX, RotationY, RotationZ;
         private InputField Distance;
+        private InputField FOV;
 #else
         private TMP_InputField PositionX, PositionY, PositionZ;
         private TMP_InputField RotationX, RotationY, RotationZ;
         private TMP_InputField Distance;
+        private TMP_InputField FOV;
 #endif
 
         private GameObject FastNav;
