@@ -407,7 +407,7 @@ namespace MoarCamz
             FOVSlider.maxValue = 179;
             FOVSlider.onValueChanged.AddListener((f) =>
             {
-                SetFOV((int)f);
+                SetFOV(f);
             });
             FOVButton.onClick.AddListener(() =>
             {
@@ -963,12 +963,12 @@ namespace MoarCamz
             SetDistance((Studio.Studio.Instance.cameraCtrl.cameraData.distance.z * -1f) + d);
         }
 
-        private void SetFOV(int fov)
+        private void SetFOV(float fov)
         {
             Studio.Studio.Instance.cameraCtrl.cameraData.parse = fov;
             Studio.Studio.Instance.cameraCtrl.fieldOfView = fov;
 #if DEBUG
-            Log.LogInfo($"Cam FOV: {Studio.Studio.Instance.cameraCtrl.cameraData.parse});
+            Log.LogInfo($"Cam FOV: {Studio.Studio.Instance.cameraCtrl.cameraData.parse}");
 #endif
         }
 
